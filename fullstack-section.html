@@ -1,0 +1,1327 @@
+<!-- Fullstack Projects Section HTML for Abenezer Libamu's Portfolio -->
+<section class="fullstack section" id="fullstack">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Fullstack Projects</h2>
+            <span class="section-subtitle">Showcasing my end-to-end development capabilities</span>
+        </div>
+
+        <div class="fullstack-content">
+            <!-- E-Commerce Platform Project -->
+            <div class="fullstack-project">
+                <div class="fullstack-header">
+                    <h3 class="fullstack-title">Modern E-Commerce Platform</h3>
+                    <div class="fullstack-tags">
+                        <span>React</span>
+                        <span>Node.js</span>
+                        <span>Express</span>
+                        <span>MongoDB</span>
+                        <span>Redux</span>
+                        <span>Stripe API</span>
+                    </div>
+                </div>
+
+                <div class="fullstack-showcase">
+                    <div class="fullstack-image-main">
+                        <img src="images/ecommerce-main.jpg" alt="E-Commerce Platform Dashboard">
+                    </div>
+                    <div class="fullstack-images-grid">
+                        <img src="images/ecommerce-1.jpg" alt="Product Listing">
+                        <img src="images/ecommerce-2.jpg" alt="Shopping Cart">
+                        <img src="images/ecommerce-3.jpg" alt="Payment Processing">
+                        <img src="images/ecommerce-4.jpg" alt="Admin Dashboard">
+                    </div>
+                </div>
+
+                <div class="fullstack-details">
+                    <div class="fullstack-info">
+                        <div class="fullstack-info-item">
+                            <h4>Role</h4>
+                            <p>Lead Developer</p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Timeline</h4>
+                            <p>3 Months</p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Live Demo</h4>
+                            <p><a href="#" target="_blank">View Demo</a></p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Repository</h4>
+                            <p><a href="#" target="_blank">GitHub</a></p>
+                        </div>
+                    </div>
+
+                    <div class="fullstack-description">
+                        <h4>Project Overview</h4>
+                        <p>A comprehensive e-commerce solution with advanced features including product management, user authentication, shopping cart functionality, payment processing, and an admin dashboard for inventory and order management.</p>
+                        
+                        <h4>Key Features</h4>
+                        <ul class="fullstack-list">
+                            <li>Responsive product catalog with advanced filtering and search</li>
+                            <li>User authentication with JWT and role-based access control</li>
+                            <li>Real-time shopping cart with persistent storage</li>
+                            <li>Secure payment processing with Stripe integration</li>
+                            <li>Admin dashboard for product, order, and user management</li>
+                            <li>Automated email notifications for order updates</li>
+                        </ul>
+
+                        <h4>Technical Implementation</h4>
+                        <p>The application follows a modern MERN stack architecture with a clear separation of concerns. The frontend is built with React and Redux for state management, while the backend uses Node.js with Express to provide RESTful APIs and MongoDB for data storage.</p>
+
+                        <div class="architecture-diagram">
+                            <img src="images/ecommerce-architecture.jpg" alt="E-Commerce Architecture Diagram">
+                        </div>
+
+                        <h4>Backend Implementation</h4>
+                        <div class="code-snippet">
+                            <h5>User Authentication Controller (Node.js/Express)</h5>
+                            <pre><code>// User authentication controller
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+exports.register = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    
+    // Create new user
+    user = new User({
+      name,
+      email,
+      password
+    });
+    
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    
+    // Save user to database
+    await user.save();
+    
+    // Generate JWT token
+    const payload = {
+      user: {
+        id: user.id,
+        role: user.role
+      }
+    };
+    
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};</code></pre>
+                        </div>
+
+                        <h4>Frontend Implementation</h4>
+                        <div class="code-snippet">
+                            <h5>Product Listing Component (React/Redux)</h5>
+                            <pre><code>import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProducts } from '../redux/actions/productActions';
+import ProductCard from '../components/ProductCard';
+import Loader from '../components/Loader';
+
+const ProductListing = () => {
+  const dispatch = useDispatch();
+  const { products, loading, error } = useSelector(state => state.products);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filters, setFilters] = useState({
+    category: '',
+    priceRange: [0, 1000],
+    sortBy: 'newest'
+  });
+
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (products.length) {
+      let result = [...products];
+      
+      // Apply category filter
+      if (filters.category) {
+        result = result.filter(product => 
+          product.category === filters.category
+        );
+      }
+      
+      // Apply price range filter
+      result = result.filter(product => 
+        product.price >= filters.priceRange[0] && 
+        product.price <= filters.priceRange[1]
+      );
+      
+      // Apply sorting
+      switch(filters.sortBy) {
+        case 'newest':
+          result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          break;
+        case 'price-low-high':
+          result.sort((a, b) => a.price - b.price);
+          break;
+        case 'price-high-low':
+          result.sort((a, b) => b.price - a.price);
+          break;
+        default:
+          break;
+      }
+      
+      setFilteredProducts(result);
+    }
+  }, [products, filters]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  if (loading) return <Loader />;
+  if (error) return <div className="error-message">{error}</div>;
+
+  return (
+    <div className="product-listing">
+      <div className="filter-controls">
+        {/* Filter controls JSX */}
+      </div>
+      
+      <div className="products-grid">
+        {filteredProducts.map(product => (
+          <ProductCard key={product._id} product={product} />
+        ))}
+      </div>
+    </div>
+  );
+};</code></pre>
+                        </div>
+
+                        <h4>Challenges & Solutions</h4>
+                        <p>One of the main challenges was implementing real-time inventory management to prevent overselling products. I solved this by implementing a reservation system during checkout and using MongoDB transactions to ensure data consistency across multiple collections.</p>
+
+                        <div class="fullstack-links">
+                            <a href="#" class="cyber-btn">View Live Demo</a>
+                            <a href="#" class="cyber-btn cyber-btn-secondary">View Source Code</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Chat Application Project -->
+            <div class="fullstack-project">
+                <div class="fullstack-header">
+                    <h3 class="fullstack-title">Real-time Chat Application</h3>
+                    <div class="fullstack-tags">
+                        <span>Socket.io</span>
+                        <span>React</span>
+                        <span>Node.js</span>
+                        <span>Express</span>
+                        <span>MongoDB</span>
+                        <span>WebRTC</span>
+                    </div>
+                </div>
+
+                <div class="fullstack-showcase">
+                    <div class="fullstack-image-main">
+                        <img src="images/chat-main.jpg" alt="Chat Application Interface">
+                    </div>
+                    <div class="fullstack-images-grid">
+                        <img src="images/chat-1.jpg" alt="Group Chat">
+                        <img src="images/chat-2.jpg" alt="Video Call">
+                        <img src="images/chat-3.jpg" alt="File Sharing">
+                        <img src="images/chat-4.jpg" alt="Mobile View">
+                    </div>
+                </div>
+
+                <div class="fullstack-details">
+                    <div class="fullstack-info">
+                        <div class="fullstack-info-item">
+                            <h4>Role</h4>
+                            <p>Full Stack Developer</p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Timeline</h4>
+                            <p>2 Months</p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Live Demo</h4>
+                            <p><a href="#" target="_blank">View Demo</a></p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Repository</h4>
+                            <p><a href="#" target="_blank">GitHub</a></p>
+                        </div>
+                    </div>
+
+                    <div class="fullstack-description">
+                        <h4>Project Overview</h4>
+                        <p>A feature-rich real-time chat application that supports text messaging, video calls, file sharing, and group conversations. The application provides end-to-end encryption for messages and supports both desktop and mobile platforms.</p>
+                        
+                        <h4>Key Features</h4>
+                        <ul class="fullstack-list">
+                            <li>Real-time messaging with typing indicators and read receipts</li>
+                            <li>One-on-one and group video calls using WebRTC</li>
+                            <li>End-to-end encryption for secure communication</li>
+                            <li>File sharing with preview support for images and documents</li>
+                            <li>User presence detection and status updates</li>
+                            <li>Message search and conversation history</li>
+                        </ul>
+
+                        <h4>Technical Implementation</h4>
+                        <p>The application uses Socket.io for real-time communication between clients and the server. WebRTC is implemented for peer-to-peer video calls, while MongoDB stores user data and message history. The frontend is built with React and styled with CSS-in-JS for a responsive design.</p>
+
+                        <div class="architecture-diagram">
+                            <img src="images/chat-architecture.jpg" alt="Chat Application Architecture Diagram">
+                        </div>
+
+                        <h4>Backend Implementation</h4>
+                        <div class="code-snippet">
+                            <h5>Socket.io Server Setup (Node.js)</h5>
+                            <pre><code>const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+const Message = require('./models/Message');
+const User = require('./models/User');
+
+// Initialize Express app and HTTP server
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+// Track online users
+const onlineUsers = new Map();
+
+io.on('connection', (socket) => {
+  console.log('New client connected');
+  
+  // User authentication
+  socket.on('authenticate', async (userId) => {
+    try {
+      const user = await User.findById(userId);
+      if (user) {
+        // Add user to online users
+        onlineUsers.set(userId, socket.id);
+        socket.userId = userId;
+        
+        // Notify other users
+        io.emit('userStatus', { userId, status: 'online' });
+        
+        // Send pending messages
+        const pendingMessages = await Message.find({
+          recipient: userId,
+          status: 'sent'
+        }).populate('sender', 'name avatar');
+        
+        if (pendingMessages.length > 0) {
+          socket.emit('pendingMessages', pendingMessages);
+          
+          // Update message status to delivered
+          await Message.updateMany(
+            { recipient: userId, status: 'sent' },
+            { status: 'delivered' }
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Authentication error:', err);
+    }
+  });
+  
+  // Handle new message
+  socket.on('sendMessage', async (messageData) => {
+    try {
+      const { recipient, content, type } = messageData;
+      
+      // Create new message in database
+      const newMessage = new Message({
+        sender: socket.userId,
+        recipient,
+        content,
+        type,
+        status: 'sent',
+        timestamp: new Date()
+      });
+      
+      await newMessage.save();
+      
+      // If recipient is online, send message immediately
+      const recipientSocketId = onlineUsers.get(recipient);
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit('newMessage', {
+          ...newMessage._doc,
+          sender: await User.findById(socket.userId, 'name avatar')
+        });
+      }
+      
+      // Confirm message sent to sender
+      socket.emit('messageSent', { messageId: newMessage._id });
+    } catch (err) {
+      console.error('Message sending error:', err);
+      socket.emit('messageError', { error: 'Failed to send message' });
+    }
+  });
+  
+  // Handle typing indicator
+  socket.on('typing', ({ recipient, isTyping }) => {
+    const recipientSocketId = onlineUsers.get(recipient);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit('userTyping', {
+        userId: socket.userId,
+        isTyping
+      });
+    }
+  });
+  
+  // Handle disconnect
+  socket.on('disconnect', () => {
+    if (socket.userId) {
+      onlineUsers.delete(socket.userId);
+      io.emit('userStatus', { userId: socket.userId, status: 'offline' });
+    }
+    console.log('Client disconnected');
+  });
+});
+
+server.listen(5000, () => {
+  console.log('Server running on port 5000');
+});</code></pre>
+                        </div>
+
+                        <h4>Frontend Implementation</h4>
+                        <div class="code-snippet">
+                            <h5>Chat Context Provider (React)</h5>
+                            <pre><code>import React, { createContext, useContext, useEffect, useState } from 'react';
+import io from 'socket.io-client';
+import { useAuth } from './AuthContext';
+
+const ChatContext = createContext();
+
+export const useChatContext = () => useContext(ChatContext);
+
+export const ChatProvider = ({ children }) => {
+  const { user } = useAuth();
+  const [socket, setSocket] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [activeConversation, setActiveConversation] = useState(null);
+  const [messages, setMessages] = useState({});
+  const [onlineUsers, setOnlineUsers] = useState({});
+  const [typingUsers, setTypingUsers] = useState({});
+  
+  // Initialize socket connection
+  useEffect(() => {
+    if (user) {
+      const newSocket = io(process.env.REACT_APP_SOCKET_URL);
+      setSocket(newSocket);
+      
+      return () => {
+        newSocket.disconnect();
+      };
+    }
+  }, [user]);
+  
+  // Socket event listeners
+  useEffect(() => {
+    if (socket && user) {
+      // Authenticate with socket server
+      socket.emit('authenticate', user._id);
+      
+      // Listen for new messages
+      socket.on('newMessage', (message) => {
+        setMessages(prev => ({
+          ...prev,
+          [message.sender._id]: [
+            ...(prev[message.sender._id] || []),
+            message
+          ]
+        }));
+        
+        // Update conversation list
+        updateConversationList(message.sender._id);
+        
+        // Send read receipt if conversation is active
+        if (activeConversation === message.sender._id) {
+          socket.emit('messageRead', { messageId: message._id });
+        }
+      });
+      
+      // Listen for user status changes
+      socket.on('userStatus', ({ userId, status }) => {
+        setOnlineUsers(prev => ({
+          ...prev,
+          [userId]: status === 'online'
+        }));
+      });
+      
+      // Listen for typing indicators
+      socket.on('userTyping', ({ userId, isTyping }) => {
+        setTypingUsers(prev => ({
+          ...prev,
+          [userId]: isTyping
+        }));
+      });
+      
+      // Load initial conversations
+      fetchConversations();
+    }
+  }, [socket, user, activeConversation]);
+  
+  // Fetch user conversations
+  const fetchConversations = async () => {
+    try {
+      const response = await fetch(`/api/conversations/${user._id}`);
+      const data = await response.json();
+      setConversations(data);
+    } catch (err) {
+      console.error('Error fetching conversations:', err);
+    }
+  };
+  
+  // Update conversation list when new message arrives
+  const updateConversationList = (userId) => {
+    setConversations(prev => {
+      const existingConversation = prev.find(c => c.participant._id === userId);
+      
+      if (existingConversation) {
+        // Move conversation to top
+        return [
+          existingConversation,
+          ...prev.filter(c => c.participant._id !== userId)
+        ];
+      } else {
+        // Add new conversation
+        return [
+          { participant: { _id: userId } },
+          ...prev
+        ];
+      }
+    });
+  };
+  
+  // Send a message
+  const sendMessage = (recipientId, content, type = 'text') => {
+    if (socket) {
+      socket.emit('sendMessage', {
+        recipient: recipientId,
+        content,
+        type
+      });
+      
+      // Optimistically add message to state
+      const tempMessage = {
+        _id: Date.now().toString(),
+        sender: { _id: user._id, name: user.name, avatar: user.avatar },
+        recipient: recipientId,
+        content,
+        type,
+        status: 'sending',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => ({
+        ...prev,
+        [recipientId]: [
+          ...(prev[recipientId] || []),
+          tempMessage
+        ]
+      }));
+      
+      // Update conversation list
+      updateConversationList(recipientId);
+    }
+  };
+  
+  // Send typing indicator
+  const sendTypingIndicator = (recipientId, isTyping) => {
+    if (socket) {
+      socket.emit('typing', { recipient: recipientId, isTyping });
+    }
+  };
+  
+  const value = {
+    socket,
+    conversations,
+    activeConversation,
+    setActiveConversation,
+    messages,
+    onlineUsers,
+    typingUsers,
+    sendMessage,
+    sendTypingIndicator
+  };
+  
+  return (
+    <ChatContext.Provider value={value}>
+      {children}
+    </ChatContext.Provider>
+  );
+};</code></pre>
+                        </div>
+
+                        <h4>Challenges & Solutions</h4>
+                        <p>Implementing reliable WebRTC connections across different networks and NAT configurations was challenging. I solved this by implementing a TURN server as a fallback for situations where direct peer-to-peer connections couldn't be established, ensuring the video call feature works reliably in various network environments.</p>
+
+                        <div class="fullstack-links">
+                            <a href="#" class="cyber-btn">View Live Demo</a>
+                            <a href="#" class="cyber-btn cyber-btn-secondary">View Source Code</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Management System Project -->
+            <div class="fullstack-project">
+                <div class="fullstack-header">
+                    <h3 class="fullstack-title">Task Management System</h3>
+                    <div class="fullstack-tags">
+                        <span>Vue.js</span>
+                        <span>Node.js</span>
+                        <span>Express</span>
+                        <span>PostgreSQL</span>
+                        <span>GraphQL</span>
+                        <span>Docker</span>
+                    </div>
+                </div>
+
+                <div class="fullstack-showcase">
+                    <div class="fullstack-image-main">
+                        <img src="images/task-main.jpg" alt="Task Management Dashboard">
+                    </div>
+                    <div class="fullstack-images-grid">
+                        <img src="images/task-1.jpg" alt="Kanban Board">
+                        <img src="images/task-2.jpg" alt="Task Details">
+                        <img src="images/task-3.jpg" alt="Team Collaboration">
+                        <img src="images/task-4.jpg" alt="Analytics Dashboard">
+                    </div>
+                </div>
+
+                <div class="fullstack-details">
+                    <div class="fullstack-info">
+                        <div class="fullstack-info-item">
+                            <h4>Role</h4>
+                            <p>Full Stack Developer</p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Timeline</h4>
+                            <p>2.5 Months</p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Live Demo</h4>
+                            <p><a href="#" target="_blank">View Demo</a></p>
+                        </div>
+                        <div class="fullstack-info-item">
+                            <h4>Repository</h4>
+                            <p><a href="#" target="_blank">GitHub</a></p>
+                        </div>
+                    </div>
+
+                    <div class="fullstack-description">
+                        <h4>Project Overview</h4>
+                        <p>A comprehensive task management system designed for team collaboration with features like Kanban boards, task assignments, time tracking, and performance analytics. The system supports multiple projects and teams with customizable workflows.</p>
+                        
+                        <h4>Key Features</h4>
+                        <ul class="fullstack-list">
+                            <li>Interactive Kanban board with drag-and-drop functionality</li>
+                            <li>Task assignment, priority setting, and deadline management</li>
+                            <li>Time tracking and productivity analytics</li>
+                            <li>Team collaboration with comments and file attachments</li>
+                            <li>Custom workflow creation for different project types</li>
+                            <li>Notification system for task updates and mentions</li>
+                        </ul>
+
+                        <h4>Technical Implementation</h4>
+                        <p>The application uses Vue.js for the frontend with Vuex for state management. The backend is built with Node.js and Express, using GraphQL for efficient data fetching. PostgreSQL serves as the database, and the entire application is containerized with Docker for easy deployment.</p>
+
+                        <div class="architecture-diagram">
+                            <img src="images/task-architecture.jpg" alt="Task Management Architecture Diagram">
+                        </div>
+
+                        <h4>Backend Implementation</h4>
+                        <div class="code-snippet">
+                            <h5>GraphQL Schema and Resolvers (Node.js)</h5>
+                            <pre><code>const { gql } = require('apollo-server-express');
+const { Pool } = require('pg');
+
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production'
+});
+
+// GraphQL Schema
+const typeDefs = gql`
+  type User {
+    id: ID!
+    name: String!
+    email: String!
+    avatar: String
+    role: String!
+    teams: [Team!]
+    tasks: [Task!]
+    createdAt: String!
+  }
+
+  type Team {
+    id: ID!
+    name: String!
+    description: String
+    members: [User!]!
+    projects: [Project!]
+    createdAt: String!
+  }
+
+  type Project {
+    id: ID!
+    name: String!
+    description: String
+    team: Team!
+    tasks: [Task!]
+    workflow: Workflow!
+    createdAt: String!
+  }
+
+  type Workflow {
+    id: ID!
+    name: String!
+    stages: [Stage!]!
+    project: Project!
+    createdAt: String!
+  }
+
+  type Stage {
+    id: ID!
+    name: String!
+    order: Int!
+    workflow: Workflow!
+    tasks: [Task!]
+    createdAt: String!
+  }
+
+  type Task {
+    id: ID!
+    title: String!
+    description: String
+    stage: Stage!
+    project: Project!
+    assignee: User
+    reporter: User!
+    priority: Priority!
+    dueDate: String
+    timeEstimate: Int
+    timeSpent: Int
+    attachments: [Attachment!]
+    comments: [Comment!]
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  enum Priority {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+
+  type Attachment {
+    id: ID!
+    filename: String!
+    url: String!
+    task: Task!
+    uploadedBy: User!
+    createdAt: String!
+  }
+
+  type Comment {
+    id: ID!
+    content: String!
+    task: Task!
+    author: User!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type Query {
+    user(id: ID!): User
+    users: [User!]!
+    team(id: ID!): Team
+    teams: [Team!]!
+    project(id: ID!): Project
+    projects: [Project!]!
+    task(id: ID!): Task
+    tasks(projectId: ID, assigneeId: ID, stageId: ID): [Task!]!
+  }
+
+  type Mutation {
+    createUser(name: String!, email: String!, password: String!, role: String!): User!
+    updateUser(id: ID!, name: String, email: String, avatar: String, role: String): User!
+    deleteUser(id: ID!): Boolean!
+    
+    createTeam(name: String!, description: String): Team!
+    updateTeam(id: ID!, name: String, description: String): Team!
+    deleteTeam(id: ID!): Boolean!
+    addTeamMember(teamId: ID!, userId: ID!): Team!
+    removeTeamMember(teamId: ID!, userId: ID!): Team!
+    
+    createProject(name: String!, description: String, teamId: ID!): Project!
+    updateProject(id: ID!, name: String, description: String): Project!
+    deleteProject(id: ID!): Boolean!
+    
+    createTask(title: String!, description: String, projectId: ID!, stageId: ID!, assigneeId: ID, priority: Priority!, dueDate: String, timeEstimate: Int): Task!
+    updateTask(id: ID!, title: String, description: String, stageId: ID, assigneeId: ID, priority: Priority, dueDate: String, timeEstimate: Int, timeSpent: Int): Task!
+    deleteTask(id: ID!): Boolean!
+    
+    addComment(taskId: ID!, content: String!): Comment!
+    updateComment(id: ID!, content: String!): Comment!
+    deleteComment(id: ID!): Boolean!
+    
+    uploadAttachment(taskId: ID!, filename: String!, url: String!): Attachment!
+    deleteAttachment(id: ID!): Boolean!
+  }
+`;
+
+// GraphQL Resolvers
+const resolvers = {
+  Query: {
+    user: async (_, { id }) => {
+      const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+      return result.rows[0];
+    },
+    users: async () => {
+      const result = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
+      return result.rows;
+    },
+    team: async (_, { id }) => {
+      const result = await pool.query('SELECT * FROM teams WHERE id = $1', [id]);
+      return result.rows[0];
+    },
+    teams: async () => {
+      const result = await pool.query('SELECT * FROM teams ORDER BY created_at DESC');
+      return result.rows;
+    },
+    project: async (_, { id }) => {
+      const result = await pool.query('SELECT * FROM projects WHERE id = $1', [id]);
+      return result.rows[0];
+    },
+    projects: async () => {
+      const result = await pool.query('SELECT * FROM projects ORDER BY created_at DESC');
+      return result.rows;
+    },
+    task: async (_, { id }) => {
+      const result = await pool.query('SELECT * FROM tasks WHERE id = $1', [id]);
+      return result.rows[0];
+    },
+    tasks: async (_, { projectId, assigneeId, stageId }) => {
+      let query = 'SELECT * FROM tasks';
+      const conditions = [];
+      const values = [];
+      
+      if (projectId) {
+        conditions.push(`project_id = $${values.length + 1}`);
+        values.push(projectId);
+      }
+      
+      if (assigneeId) {
+        conditions.push(`assignee_id = $${values.length + 1}`);
+        values.push(assigneeId);
+      }
+      
+      if (stageId) {
+        conditions.push(`stage_id = $${values.length + 1}`);
+        values.push(stageId);
+      }
+      
+      if (conditions.length > 0) {
+        query += ' WHERE ' + conditions.join(' AND ');
+      }
+      
+      query += ' ORDER BY updated_at DESC';
+      
+      const result = await pool.query(query, values);
+      return result.rows;
+    }
+  },
+  
+  Mutation: {
+    createTask: async (_, { title, description, projectId, stageId, assigneeId, priority, dueDate, timeEstimate }) => {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        
+        // Get reporter ID from context (authenticated user)
+        const reporterId = 1; // Placeholder, should come from auth context
+        
+        const result = await client.query(
+          `INSERT INTO tasks 
+           (title, description, project_id, stage_id, assignee_id, reporter_id, priority, due_date, time_estimate, time_spent) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0) 
+           RETURNING *`,
+          [title, description, projectId, stageId, assigneeId, reporterId, priority, dueDate, timeEstimate]
+        );
+        
+        // Update project's updated_at timestamp
+        await client.query(
+          'UPDATE projects SET updated_at = NOW() WHERE id = $1',
+          [projectId]
+        );
+        
+        await client.query('COMMIT');
+        return result.rows[0];
+      } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+      } finally {
+        client.release();
+      }
+    },
+    
+    updateTask: async (_, { id, title, description, stageId, assigneeId, priority, dueDate, timeEstimate, timeSpent }) => {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        
+        // Build update query dynamically based on provided fields
+        const updates = [];
+        const values = [id];
+        let paramIndex = 2;
+        
+        if (title !== undefined) {
+          updates.push(`title = $${paramIndex++}`);
+          values.push(title);
+        }
+        
+        if (description !== undefined) {
+          updates.push(`description = $${paramIndex++}`);
+          values.push(description);
+        }
+        
+        if (stageId !== undefined) {
+          updates.push(`stage_id = $${paramIndex++}`);
+          values.push(stageId);
+        }
+        
+        if (assigneeId !== undefined) {
+          updates.push(`assignee_id = $${paramIndex++}`);
+          values.push(assigneeId);
+        }
+        
+        if (priority !== undefined) {
+          updates.push(`priority = $${paramIndex++}`);
+          values.push(priority);
+        }
+        
+        if (dueDate !== undefined) {
+          updates.push(`due_date = $${paramIndex++}`);
+          values.push(dueDate);
+        }
+        
+        if (timeEstimate !== undefined) {
+          updates.push(`time_estimate = $${paramIndex++}`);
+          values.push(timeEstimate);
+        }
+        
+        if (timeSpent !== undefined) {
+          updates.push(`time_spent = $${paramIndex++}`);
+          values.push(timeSpent);
+        }
+        
+        // Always update the updated_at timestamp
+        updates.push('updated_at = NOW()');
+        
+        if (updates.length === 0) {
+          throw new Error('No fields to update');
+        }
+        
+        const query = `UPDATE tasks SET ${updates.join(', ')} WHERE id = $1 RETURNING *`;
+        const result = await client.query(query, values);
+        
+        // Get project ID for this task
+        const projectResult = await client.query(
+          'SELECT project_id FROM tasks WHERE id = $1',
+          [id]
+        );
+        
+        // Update project's updated_at timestamp
+        await client.query(
+          'UPDATE projects SET updated_at = NOW() WHERE id = $1',
+          [projectResult.rows[0].project_id]
+        );
+        
+        await client.query('COMMIT');
+        return result.rows[0];
+      } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+      } finally {
+        client.release();
+      }
+    }
+    
+    // Other mutation resolvers...
+  },
+  
+  // Relationship resolvers
+  User: {
+    teams: async (user) => {
+      const result = await pool.query(
+        'SELECT t.* FROM teams t JOIN team_members tm ON t.id = tm.team_id WHERE tm.user_id = $1',
+        [user.id]
+      );
+      return result.rows;
+    },
+    tasks: async (user) => {
+      const result = await pool.query(
+        'SELECT * FROM tasks WHERE assignee_id = $1 ORDER BY updated_at DESC',
+        [user.id]
+      );
+      return result.rows;
+    }
+  },
+  
+  Team: {
+    members: async (team) => {
+      const result = await pool.query(
+        'SELECT u.* FROM users u JOIN team_members tm ON u.id = tm.user_id WHERE tm.team_id = $1',
+        [team.id]
+      );
+      return result.rows;
+    },
+    projects: async (team) => {
+      const result = await pool.query(
+        'SELECT * FROM projects WHERE team_id = $1 ORDER BY updated_at DESC',
+        [team.id]
+      );
+      return result.rows;
+    }
+  }
+  
+  // Other relationship resolvers...
+};
+
+module.exports = { typeDefs, resolvers };</code></pre>
+                        </div>
+
+                        <h4>Frontend Implementation</h4>
+                        <div class="code-snippet">
+                            <h5>Kanban Board Component (Vue.js)</h5>
+                            <pre><code>&lt;template&gt;
+  &lt;div class="kanban-board"&gt;
+    &lt;div class="board-header"&gt;
+      &lt;h2&gt;{{ project.name }} Board&lt;/h2&gt;
+      &lt;div class="board-actions"&gt;
+        &lt;button @click="openCreateTaskModal" class="btn-primary"&gt;
+          &lt;i class="fas fa-plus"&gt;&lt;/i&gt; Add Task
+        &lt;/button&gt;
+        &lt;div class="filter-dropdown"&gt;
+          &lt;button class="btn-secondary"&gt;
+            &lt;i class="fas fa-filter"&gt;&lt;/i&gt; Filter
+          &lt;/button&gt;
+          &lt;div class="dropdown-content"&gt;
+            &lt;div class="filter-group"&gt;
+              &lt;h4&gt;Assignee&lt;/h4&gt;
+              &lt;div v-for="member in teamMembers" :key="member.id" class="filter-item"&gt;
+                &lt;input 
+                  type="checkbox" 
+                  :id="'member-' + member.id" 
+                  :value="member.id" 
+                  v-model="filters.assignees"
+                &gt;
+                &lt;label :for="'member-' + member.id"&gt;{{ member.name }}&lt;/label&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="filter-group"&gt;
+              &lt;h4&gt;Priority&lt;/h4&gt;
+              &lt;div v-for="priority in priorities" :key="priority" class="filter-item"&gt;
+                &lt;input 
+                  type="checkbox" 
+                  :id="'priority-' + priority" 
+                  :value="priority" 
+                  v-model="filters.priorities"
+                &gt;
+                &lt;label :for="'priority-' + priority"&gt;{{ priority }}&lt;/label&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;button @click="applyFilters" class="btn-primary"&gt;Apply&lt;/button&gt;
+            &lt;button @click="resetFilters" class="btn-secondary"&gt;Reset&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;div class="board-container"&gt;
+      &lt;div 
+        v-for="stage in workflow.stages" 
+        :key="stage.id" 
+        class="board-column"
+      &gt;
+        &lt;div class="column-header"&gt;
+          &lt;h3&gt;{{ stage.name }}&lt;/h3&gt;
+          &lt;span class="task-count"&gt;{{ filteredTasks(stage.id).length }}&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div 
+          class="column-content" 
+          @dragover.prevent 
+          @drop="onDrop($event, stage.id)"
+        &gt;
+          &lt;div 
+            v-for="task in filteredTasks(stage.id)" 
+            :key="task.id" 
+            class="task-card"
+            :class="{ 'priority-high': task.priority === 'HIGH', 'priority-critical': task.priority === 'CRITICAL' }"
+            draggable="true"
+            @dragstart="onDragStart($event, task.id)"
+            @click="openTaskDetails(task)"
+          &gt;
+            &lt;div class="task-header"&gt;
+              &lt;span class="task-id"&gt;#{{ task.id }}&lt;/span&gt;
+              &lt;span :class="'priority-badge priority-' + task.priority.toLowerCase()"&gt;
+                {{ task.priority }}
+              &lt;/span&gt;
+            &lt;/div&gt;
+            &lt;h4 class="task-title"&gt;{{ task.title }}&lt;/h4&gt;
+            &lt;p v-if="task.description" class="task-description"&gt;
+              {{ truncateDescription(task.description) }}
+            &lt;/p&gt;
+            &lt;div class="task-meta"&gt;
+              &lt;div v-if="task.dueDate" class="due-date" :class="{ 'overdue': isOverdue(task.dueDate) }"&gt;
+                &lt;i class="far fa-calendar"&gt;&lt;/i&gt; {{ formatDate(task.dueDate) }}
+              &lt;/div&gt;
+              &lt;div v-if="task.assignee" class="assignee"&gt;
+                &lt;img :src="task.assignee.avatar || '/default-avatar.png'" :alt="task.assignee.name"&gt;
+              &lt;/div&gt;
+              &lt;div v-if="task.comments && task.comments.length" class="comment-count"&gt;
+                &lt;i class="far fa-comment"&gt;&lt;/i&gt; {{ task.comments.length }}
+              &lt;/div&gt;
+              &lt;div v-if="task.attachments && task.attachments.length" class="attachment-count"&gt;
+                &lt;i class="far fa-paperclip"&gt;&lt;/i&gt; {{ task.attachments.length }}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div v-if="filteredTasks(stage.id).length === 0" class="empty-column"&gt;
+            &lt;p&gt;No tasks in this stage&lt;/p&gt;
+            &lt;button @click="openCreateTaskModal(stage.id)" class="btn-text"&gt;
+              &lt;i class="fas fa-plus"&gt;&lt;/i&gt; Add Task
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;task-modal 
+      v-if="showTaskModal" 
+      :task="selectedTask" 
+      :project="project"
+      :workflow="workflow"
+      :team-members="teamMembers"
+      @close="closeTaskModal"
+      @update="updateTask"
+      @delete="deleteTask"
+    /&gt;
+    
+    &lt;create-task-modal
+      v-if="showCreateTaskModal"
+      :project="project"
+      :workflow="workflow"
+      :team-members="teamMembers"
+      :initial-stage-id="initialStageId"
+      @close="closeCreateTaskModal"
+      @create="createTask"
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+import { mapState, mapActions } from 'vuex';
+import TaskModal from './TaskModal.vue';
+import CreateTaskModal from './CreateTaskModal.vue';
+import { formatDate } from '@/utils/dateUtils';
+
+export default {
+  name: 'KanbanBoard',
+  components: {
+    TaskModal,
+    CreateTaskModal
+  },
+  props: {
+    projectId: {
+      type: String,
+      required: true
+    }
+  },
+  data() {
+    return {
+      showTaskModal: false,
+      showCreateTaskModal: false,
+      selectedTask: null,
+      initialStageId: null,
+      filters: {
+        assignees: [],
+        priorities: []
+      },
+      priorities: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+    };
+  },
+  computed: {
+    ...mapState({
+      project(state) {
+        return state.projects.items.find(p => p.id === this.projectId);
+      },
+      workflow(state) {
+        const project = state.projects.items.find(p => p.id === this.projectId);
+        return project ? project.workflow : null;
+      },
+      tasks(state) {
+        return state.tasks.items.filter(t => t.project.id === this.projectId);
+      },
+      teamMembers(state) {
+        const project = state.projects.items.find(p => p.id === this.projectId);
+        return project && project.team ? project.team.members : [];
+      }
+    })
+  },
+  created() {
+    this.fetchProjectData(this.projectId);
+    this.fetchTasks({ projectId: this.projectId });
+  },
+  methods: {
+    ...mapActions({
+      fetchProjectData: 'projects/fetchProject',
+      fetchTasks: 'tasks/fetchTasks',
+      moveTask: 'tasks/updateTask',
+      createTaskAction: 'tasks/createTask',
+      updateTaskAction: 'tasks/updateTask',
+      deleteTaskAction: 'tasks/deleteTask'
+    }),
+    filteredTasks(stageId) {
+      return this.tasks
+        .filter(task => task.stage.id === stageId)
+        .filter(task => {
+          // Apply assignee filter
+          if (this.filters.assignees.length > 0) {
+            if (!task.assignee || !this.filters.assignees.includes(task.assignee.id)) {
+              return false;
+            }
+          }
+          
+          // Apply priority filter
+          if (this.filters.priorities.length > 0) {
+            if (!this.filters.priorities.includes(task.priority)) {
+              return false;
+            }
+          }
+          
+          return true;
+        });
+    },
+    onDragStart(event, taskId) {
+      event.dataTransfer.setData('taskId', taskId);
+    },
+    onDrop(event, stageId) {
+      const taskId = event.dataTransfer.getData('taskId');
+      this.moveTask({
+        id: taskId,
+        stageId: stageId
+      });
+    },
+    openTaskDetails(task) {
+      this.selectedTask = task;
+      this.showTaskModal = true;
+    },
+    closeTaskModal() {
+      this.showTaskModal = false;
+      this.selectedTask = null;
+    },
+    openCreateTaskModal(stageId = null) {
+      this.initialStageId = stageId || this.workflow.stages[0].id;
+      this.showCreateTaskModal = true;
+    },
+    closeCreateTaskModal() {
+      this.showCreateTaskModal = false;
+      this.initialStageId = null;
+    },
+    createTask(taskData) {
+      this.createTaskAction({
+        ...taskData,
+        projectId: this.projectId
+      });
+      this.closeCreateTaskModal();
+    },
+    updateTask(taskData) {
+      this.updateTaskAction(taskData);
+      this.closeTaskModal();
+    },
+    deleteTask(taskId) {
+      this.deleteTaskAction(taskId);
+      this.closeTaskModal();
+    },
+    applyFilters() {
+      // Filters are reactive, no need to do anything here
+      // Close dropdown if needed
+    },
+    resetFilters() {
+      this.filters = {
+        assignees: [],
+        priorities: []
+      };
+    },
+    truncateDescription(description) {
+      return description.length > 100 
+        ? description.substring(0, 97) + '...' 
+        : description;
+    },
+    formatDate(dateString) {
+      return formatDate(dateString);
+    },
+    isOverdue(dateString) {
+      const dueDate = new Date(dateString);
+      const today = new Date();
+      return dueDate < today;
+    }
+  }
+};
+&lt;/script&gt;</code></pre>
+                        </div>
+
+                        <h4>Challenges & Solutions</h4>
+                        <p>One significant challenge was optimizing the GraphQL queries to prevent over-fetching data while maintaining a responsive user interface. I implemented a custom caching layer and query batching to reduce the number of database queries and improve performance, especially for the Kanban board view which required real-time updates.</p>
+
+                        <div class="fullstack-links">
+                            <a href="#" class="cyber-btn">View Live Demo</a>
+                            <a href="#" class="cyber-btn cyber-btn-secondary">View Source Code</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
